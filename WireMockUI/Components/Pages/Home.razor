@@ -1,0 +1,47 @@
+@page "/"
+@rendermode InteractiveServer
+
+<PageTitle>WireMock.NET UI</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Welcome to WireMock.NET UI</MudText>
+<MudText Class="mb-8">Manage your WireMock.NET server with this intuitive interface.</MudText>
+
+<MudGrid>
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard Elevation="2">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">
+                        <MudIcon Icon="@Icons.Material.Filled.Map" Class="mr-2" />
+                        Mappings
+                    </MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText>View and manage your API mappings. Create, edit, and delete mock responses.</MudText>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Href="/mappings">Go to Mappings</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard Elevation="2">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">
+                        <MudIcon Icon="@Icons.Material.Filled.Http" Class="mr-2" />
+                        Requests
+                    </MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText>View all incoming requests to your WireMock server for debugging.</MudText>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Href="/requests">Go to Requests</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+</MudGrid>

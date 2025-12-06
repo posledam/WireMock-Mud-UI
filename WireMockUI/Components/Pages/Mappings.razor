@@ -1,0 +1,145 @@
+@page "/mappings"
+@rendermode InteractiveServer
+@inject IWireMockService WireMockService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Mappings - WireMock.NET UI</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Mappings</MudText>
+
+<MudPaper Class="pa-4 mb-4">
+    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenCreateDialog">
+            Create Mapping
+        </MudButton>
+        <MudStack Row="true" Spacing="2">
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Refresh" OnClick="LoadMappings">
+                Refresh
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" OnClick="ResetMappings">
+                Reset All
+            </MudButton>
+        </MudStack>
+    </MudStack>
+</MudPaper>
+
+@if (_isLoading)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+}
+else if (_mappings == null || !_mappings.Any())
+{
+    <MudAlert Severity="Severity.Info">No mappings found. Create your first mapping to get started.</MudAlert>
+}
+else
+{
+    <MudTable Items="_mappings" Hover="true" Breakpoint="Breakpoint.Sm" Dense="true">
+        <HeaderContent>
+            <MudTh>Title</MudTh>
+            <MudTh>Method</MudTh>
+            <MudTh>Path</MudTh>
+            <MudTh>Status Code</MudTh>
+            <MudTh>Priority</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Title">@context.Title</MudTd>
+            <MudTd DataLabel="Method">@(context.Request?.Methods != null ? string.Join(", ", context.Request.Methods) : "ANY")</MudTd>
+            <MudTd DataLabel="Path">@context.Request?.Path</MudTd>
+            <MudTd DataLabel="Status Code">@context.Response?.StatusCode</MudTd>
+            <MudTd DataLabel="Priority">@context.Priority</MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Color="Color.Info" OnClick="@(() => ViewMapping(context))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteMapping(context.Guid))" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private List<WireMockMapping> _mappings = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMappings();
+    }
+
+    private async Task LoadMappings()
+    {
+        _isLoading = true;
+        var result = await WireMockService.GetMappingsAsync();
+        _mappings = result?.Mappings?.ToList() ?? new List<WireMockMapping>();
+        _isLoading = false;
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<CreateMappingDialog>("Create New Mapping", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is CreateMappingRequest request)
+        {
+            if (await WireMockService.CreateMappingAsync(request))
+            {
+                Snackbar.Add("Mapping created successfully", Severity.Success);
+                await LoadMappings();
+            }
+            else
+            {
+                Snackbar.Add("Failed to create mapping", Severity.Error);
+            }
+        }
+    }
+
+    private async Task ViewMapping(WireMockMapping mapping)
+    {
+        var parameters = new DialogParameters<ViewMappingDialog>
+        {
+            { x => x.Mapping, mapping }
+        };
+
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Large,
+            FullWidth = true,
+            CloseOnEscapeKey = true
+        };
+
+        await DialogService.ShowAsync<ViewMappingDialog>($"Mapping: {mapping.Title}", parameters, options);
+    }
+
+    private async Task DeleteMapping(Guid id)
+    {
+        if (await WireMockService.DeleteMappingAsync(id))
+        {
+            Snackbar.Add("Mapping deleted successfully", Severity.Success);
+            await LoadMappings();
+        }
+        else
+        {
+            Snackbar.Add("Failed to delete mapping", Severity.Error);
+        }
+    }
+
+    private async Task ResetMappings()
+    {
+        if (await WireMockService.ResetMappingsAsync())
+        {
+            Snackbar.Add("All mappings reset successfully", Severity.Success);
+            await LoadMappings();
+        }
+        else
+        {
+            Snackbar.Add("Failed to reset mappings", Severity.Error);
+        }
+    }
+}

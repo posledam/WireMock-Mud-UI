@@ -1,0 +1,106 @@
+@using WireMockUI.Models
+@using System.Text.Json
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12">
+                <MudText Typo="Typo.h6">Request Details</MudText>
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudTextField Label="Method"
+                              Value="@Request?.Method"
+                              Variant="Variant.Outlined"
+                              ReadOnly="true"
+                              Margin="Margin.Dense" />
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudTextField Label="Timestamp"
+                              Value="@Request?.DateTime.ToString("yyyy-MM-dd HH:mm:ss")"
+                              Variant="Variant.Outlined"
+                              ReadOnly="true"
+                              Margin="Margin.Dense" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudTextField Label="URL"
+                              Value="@Request?.Url"
+                              Variant="Variant.Outlined"
+                              ReadOnly="true"
+                              Margin="Margin.Dense" />
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudTextField Label="Absolute URL"
+                              Value="@Request?.AbsoluteUrl"
+                              Variant="Variant.Outlined"
+                              ReadOnly="true"
+                              Margin="Margin.Dense" />
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudTextField Label="Client IP"
+                              Value="@Request?.ClientIP"
+                              Variant="Variant.Outlined"
+                              ReadOnly="true"
+                              Margin="Margin.Dense" />
+            </MudItem>
+
+            @if (Request?.Headers != null && Request.Headers.Any())
+            {
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6" Class="mt-2">Headers</MudText>
+                    <MudPaper Class="pa-2 mt-2" Outlined="true">
+                        @foreach (var header in Request.Headers)
+                        {
+                            <MudText Typo="Typo.body2">
+                                <strong>@header.Key:</strong> @string.Join(", ", header.Value)
+                            </MudText>
+                        }
+                    </MudPaper>
+                </MudItem>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Request?.Body))
+            {
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6" Class="mt-2">Body</MudText>
+                    <MudPaper Class="pa-2 mt-2" Outlined="true">
+                        <MudText Typo="Typo.body2" Style="font-family: monospace; white-space: pre-wrap;">@FormatBody(Request.Body)</MudText>
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public WireMockRequest? Request { get; set; }
+
+    private void Close()
+    {
+        MudDialog?.Close();
+    }
+
+    private string FormatBody(string body)
+    {
+        try
+        {
+            var json = JsonSerializer.Deserialize<object>(body);
+            return JsonSerializer.Serialize(json, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch
+        {
+            return body;
+        }
+    }
+}

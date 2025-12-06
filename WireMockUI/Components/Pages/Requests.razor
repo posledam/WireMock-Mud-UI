@@ -1,0 +1,116 @@
+@page "/requests"
+@rendermode InteractiveServer
+@inject IWireMockService WireMockService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Requests - WireMock.NET UI</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Requests</MudText>
+
+<MudPaper Class="pa-4 mb-4">
+    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+        <MudText Typo="Typo.body1">View all incoming requests to your WireMock server</MudText>
+        <MudStack Row="true" Spacing="2">
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Refresh" OnClick="LoadRequests">
+                Refresh
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" OnClick="ResetRequests">
+                Clear All
+            </MudButton>
+        </MudStack>
+    </MudStack>
+</MudPaper>
+
+@if (_isLoading)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+}
+else if (_requests == null || !_requests.Any())
+{
+    <MudAlert Severity="Severity.Info">No requests logged yet.</MudAlert>
+}
+else
+{
+    <MudTable Items="_requests" Hover="true" Breakpoint="Breakpoint.Sm" Dense="true">
+        <HeaderContent>
+            <MudTh>Method</MudTh>
+            <MudTh>URL</MudTh>
+            <MudTh>Time</MudTh>
+            <MudTh>Client IP</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Method">
+                <MudChip Size="Size.Small" Color="@GetMethodColor(context.Method)">@context.Method</MudChip>
+            </MudTd>
+            <MudTd DataLabel="URL">@context.Url</MudTd>
+            <MudTd DataLabel="Time">@context.DateTime.ToString("yyyy-MM-dd HH:mm:ss")</MudTd>
+            <MudTd DataLabel="Client IP">@context.ClientIP</MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Color="Color.Info" OnClick="@(() => ViewRequest(context))" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private List<WireMockRequest> _requests = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRequests();
+    }
+
+    private async Task LoadRequests()
+    {
+        _isLoading = true;
+        var result = await WireMockService.GetRequestsAsync();
+        _requests = result?.Requests?.OrderByDescending(r => r.DateTime).ToList() ?? new List<WireMockRequest>();
+        _isLoading = false;
+    }
+
+    private async Task ViewRequest(WireMockRequest request)
+    {
+        var parameters = new DialogParameters<ViewRequestDialog>
+        {
+            { x => x.Request, request }
+        };
+
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Large,
+            FullWidth = true,
+            CloseOnEscapeKey = true
+        };
+
+        await DialogService.ShowAsync<ViewRequestDialog>($"Request: {request.Method} {request.Url}", parameters, options);
+    }
+
+    private async Task ResetRequests()
+    {
+        if (await WireMockService.ResetRequestsAsync())
+        {
+            Snackbar.Add("All requests cleared successfully", Severity.Success);
+            await LoadRequests();
+        }
+        else
+        {
+            Snackbar.Add("Failed to clear requests", Severity.Error);
+        }
+    }
+
+    private Color GetMethodColor(string? method)
+    {
+        return method?.ToUpper() switch
+        {
+            "GET" => Color.Success,
+            "POST" => Color.Primary,
+            "PUT" => Color.Warning,
+            "DELETE" => Color.Error,
+            "PATCH" => Color.Info,
+            _ => Color.Default
+        };
+    }
+}

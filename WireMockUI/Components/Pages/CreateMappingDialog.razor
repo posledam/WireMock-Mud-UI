@@ -1,0 +1,120 @@
+@using WireMockUI.Models
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="_model.Title"
+                          Label="Title"
+                          Required="true"
+                          RequiredError="Title is required"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense" />
+
+            <MudNumericField @bind-Value="_model.Priority"
+                             Label="Priority"
+                             Variant="Variant.Outlined"
+                             Margin="Margin.Dense"
+                             HelperText="Higher priority mappings are matched first" />
+
+            <MudDivider Class="my-4" />
+
+            <MudText Typo="Typo.h6" Class="mb-2">Request Pattern</MudText>
+
+            <MudTextField @bind-Value="_model.Request.Path"
+                          Label="Path"
+                          Placeholder="/api/users"
+                          Required="true"
+                          RequiredError="Path is required"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense" />
+
+            <MudSelect @bind-Value="_selectedMethod"
+                       Label="HTTP Method"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense">
+                <MudSelectItem Value="@("GET")">GET</MudSelectItem>
+                <MudSelectItem Value="@("POST")">POST</MudSelectItem>
+                <MudSelectItem Value="@("PUT")">PUT</MudSelectItem>
+                <MudSelectItem Value="@("DELETE")">DELETE</MudSelectItem>
+                <MudSelectItem Value="@("PATCH")">PATCH</MudSelectItem>
+            </MudSelect>
+
+            <MudDivider Class="my-4" />
+
+            <MudText Typo="Typo.h6" Class="mb-2">Response</MudText>
+
+            <MudNumericField @bind-Value="_model.Response.StatusCode"
+                             Label="Status Code"
+                             Variant="Variant.Outlined"
+                             Margin="Margin.Dense"
+                             Min="100"
+                             Max="599" />
+
+            <MudTextField @bind-Value="_model.Response.Body"
+                          Label="Response Body"
+                          Lines="5"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Placeholder='{"message": "Success"}' />
+
+            <MudTextField @bind-Value="_responseContentType"
+                          Label="Content-Type"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Placeholder="application/json" />
+
+            <MudNumericField @bind-Value="_model.Response.Delay"
+                             Label="Delay (ms)"
+                             Variant="Variant.Outlined"
+                             Margin="Margin.Dense"
+                             HelperText="Response delay in milliseconds" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">Create</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public EventCallback OnMappingCreated { get; set; }
+
+    private MudForm? _form;
+    private CreateMappingRequest _model = new();
+    private string _selectedMethod = "GET";
+    private string _responseContentType = "application/json";
+
+    protected override void OnInitialized()
+    {
+        _model.Request.Methods = new[] { _selectedMethod };
+        _model.Response.Headers = new Dictionary<string, string>
+        {
+            { "Content-Type", _responseContentType }
+        };
+    }
+
+    private void Submit()
+    {
+        _model.Request.Methods = new[] { _selectedMethod };
+
+        if (!string.IsNullOrWhiteSpace(_responseContentType))
+        {
+            _model.Response.Headers = new Dictionary<string, string>
+            {
+                { "Content-Type", _responseContentType }
+            };
+        }
+
+        MudDialog?.Close(DialogResult.Ok(_model));
+    }
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+}

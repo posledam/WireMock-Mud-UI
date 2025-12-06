@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  wiremock:
+    image: sheyenrath/wiremock.net-standalone:latest
+    container_name: wiremock
+    ports:
+      - "9091:8080"
+    environment:
+      - WIREMOCK_OPTIONS=--global-response-templating --verbose
+    volumes:
+      - ./wiremock-data:/app/__admin/mappings
+    restart: unless-stopped
