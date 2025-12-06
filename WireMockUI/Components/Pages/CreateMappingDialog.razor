@@ -1,17 +1,17 @@
-@using WireMockUI.Models
+@using WireMock.Admin.Mappings
 @inject ISnackbar Snackbar
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form">
-            <MudTextField @bind-Value="_model.Title"
+            <MudTextField @bind-Value="_title"
                           Label="Title"
                           Required="true"
                           RequiredError="Title is required"
                           Variant="Variant.Outlined"
                           Margin="Margin.Dense" />
 
-            <MudNumericField @bind-Value="_model.Priority"
+            <MudNumericField @bind-Value="_priority"
                              Label="Priority"
                              Variant="Variant.Outlined"
                              Margin="Margin.Dense"
@@ -21,7 +21,7 @@
 
             <MudText Typo="Typo.h6" Class="mb-2">Request Pattern</MudText>
 
-            <MudTextField @bind-Value="_model.Request.Path"
+            <MudTextField @bind-Value="_path"
                           Label="Path"
                           Placeholder="/api/users"
                           Required="true"
@@ -44,14 +44,14 @@
 
             <MudText Typo="Typo.h6" Class="mb-2">Response</MudText>
 
-            <MudNumericField @bind-Value="_model.Response.StatusCode"
+            <MudNumericField @bind-Value="_statusCode"
                              Label="Status Code"
                              Variant="Variant.Outlined"
                              Margin="Margin.Dense"
                              Min="100"
                              Max="599" />
 
-            <MudTextField @bind-Value="_model.Response.Body"
+            <MudTextField @bind-Value="_responseBody"
                           Label="Response Body"
                           Lines="5"
                           Variant="Variant.Outlined"
@@ -64,7 +64,7 @@
                           Margin="Margin.Dense"
                           Placeholder="application/json" />
 
-            <MudNumericField @bind-Value="_model.Response.Delay"
+            <MudNumericField @bind-Value="_delay"
                              Label="Delay (ms)"
                              Variant="Variant.Outlined"
                              Margin="Margin.Dense"
@@ -85,32 +85,42 @@
     public EventCallback OnMappingCreated { get; set; }
 
     private MudForm? _form;
-    private CreateMappingRequest _model = new();
+    private string _title = "";
+    private int _priority = 0;
+    private string _path = "";
     private string _selectedMethod = "GET";
+    private int _statusCode = 200;
+    private string _responseBody = "";
     private string _responseContentType = "application/json";
-
-    protected override void OnInitialized()
-    {
-        _model.Request.Methods = new[] { _selectedMethod };
-        _model.Response.Headers = new Dictionary<string, string>
-        {
-            { "Content-Type", _responseContentType }
-        };
-    }
+    private int _delay = 0;
 
     private void Submit()
     {
-        _model.Request.Methods = new[] { _selectedMethod };
-
-        if (!string.IsNullOrWhiteSpace(_responseContentType))
+        var mapping = new MappingModel
         {
-            _model.Response.Headers = new Dictionary<string, string>
+            Title = _title,
+            Priority = _priority,
+            Request = new RequestModel
             {
-                { "Content-Type", _responseContentType }
-            };
-        }
+                Path = new MatcherModel
+                {
+                    Name = "WildcardMatcher",
+                    Pattern = _path
+                },
+                Methods = new[] { _selectedMethod }
+            },
+            Response = new ResponseModel
+            {
+                StatusCode = _statusCode,
+                Body = _responseBody,
+                Headers = string.IsNullOrWhiteSpace(_responseContentType)
+                    ? null
+                    : new Dictionary<string, object> { { "Content-Type", _responseContentType } },
+                Delay = _delay > 0 ? _delay : null
+            }
+        };
 
-        MudDialog?.Close(DialogResult.Ok(_model));
+        MudDialog?.Close(DialogResult.Ok(mapping));
     }
 
     private void Cancel()

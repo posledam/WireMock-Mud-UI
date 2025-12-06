@@ -1,28 +1,23 @@
-using System.Net.Http.Json;
-using System.Text.Json;
-using WireMockUI.Models;
+using WireMock.Admin.Mappings;
+using WireMock.Admin.Requests;
+using WireMock.Client;
 
 namespace WireMockUI.Services;
 
 public class WireMockService : IWireMockService
 {
-    private readonly HttpClient _httpClient;
-    private readonly JsonSerializerOptions _jsonOptions;
+    private readonly IWireMockAdminApi _adminApi;
 
-    public WireMockService(HttpClient httpClient)
+    public WireMockService(IWireMockAdminApi adminApi)
     {
-        _httpClient = httpClient;
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
+        _adminApi = adminApi;
     }
 
-    public async Task<MappingsList?> GetMappingsAsync()
+    public async Task<IList<MappingModel>?> GetMappingsAsync()
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<MappingsList>("__admin/mappings", _jsonOptions);
+            return await _adminApi.GetMappingsAsync();
         }
         catch (Exception ex)
         {
@@ -31,11 +26,11 @@ public class WireMockService : IWireMockService
         }
     }
 
-    public async Task<WireMockMapping?> GetMappingAsync(Guid id)
+    public async Task<MappingModel?> GetMappingAsync(Guid id)
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<WireMockMapping>($"__admin/mappings/{id}", _jsonOptions);
+            return await _adminApi.GetMappingAsync(id);
         }
         catch (Exception ex)
         {
@@ -44,12 +39,12 @@ public class WireMockService : IWireMockService
         }
     }
 
-    public async Task<bool> CreateMappingAsync(CreateMappingRequest request)
+    public async Task<bool> CreateMappingAsync(MappingModel mapping)
     {
         try
         {
-            var response = await _httpClient.PostAsJsonAsync("__admin/mappings", request, _jsonOptions);
-            return response.IsSuccessStatusCode;
+            var result = await _adminApi.PostMappingAsync(mapping);
+            return result?.Status == "Mapping added" || result?.Status?.Contains("created") == true;
         }
         catch (Exception ex)
         {
@@ -58,12 +53,12 @@ public class WireMockService : IWireMockService
         }
     }
 
-    public async Task<bool> UpdateMappingAsync(Guid id, CreateMappingRequest request)
+    public async Task<bool> UpdateMappingAsync(Guid id, MappingModel mapping)
     {
         try
         {
-            var response = await _httpClient.PutAsJsonAsync($"__admin/mappings/{id}", request, _jsonOptions);
-            return response.IsSuccessStatusCode;
+            var result = await _adminApi.PutMappingAsync(id, mapping);
+            return result?.Status == "Mapping updated" || result?.Status?.Contains("updated") == true;
         }
         catch (Exception ex)
         {
@@ -76,8 +71,8 @@ public class WireMockService : IWireMockService
     {
         try
         {
-            var response = await _httpClient.DeleteAsync($"__admin/mappings/{id}");
-            return response.IsSuccessStatusCode;
+            var result = await _adminApi.DeleteMappingAsync(id);
+            return result?.Status == "Mapping removed" || result?.Status?.Contains("deleted") == true || result?.Status?.Contains("removed") == true;
         }
         catch (Exception ex)
         {
@@ -90,8 +85,8 @@ public class WireMockService : IWireMockService
     {
         try
         {
-            var response = await _httpClient.DeleteAsync("__admin/mappings");
-            return response.IsSuccessStatusCode;
+            var result = await _adminApi.ResetMappingsAsync();
+            return result?.Status == "Mappings reset" || result?.Status?.Contains("reset") == true;
         }
         catch (Exception ex)
         {
@@ -100,11 +95,11 @@ public class WireMockService : IWireMockService
         }
     }
 
-    public async Task<RequestsList?> GetRequestsAsync()
+    public async Task<IList<LogEntryModel>?> GetRequestsAsync()
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<RequestsList>("__admin/requests", _jsonOptions);
+            return await _adminApi.GetRequestsAsync();
         }
         catch (Exception ex)
         {
@@ -113,11 +108,11 @@ public class WireMockService : IWireMockService
         }
     }
 
-    public async Task<WireMockRequest?> GetRequestAsync(Guid id)
+    public async Task<LogEntryModel?> GetRequestAsync(Guid id)
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<WireMockRequest>($"__admin/requests/{id}", _jsonOptions);
+            return await _adminApi.GetRequestAsync(id);
         }
         catch (Exception ex)
         {
@@ -130,8 +125,8 @@ public class WireMockService : IWireMockService
     {
         try
         {
-            var response = await _httpClient.DeleteAsync("__admin/requests");
-            return response.IsSuccessStatusCode;
+            var result = await _adminApi.ResetRequestsAsync();
+            return result?.Status == "Requests reset" || result?.Status?.Contains("reset") == true;
         }
         catch (Exception ex)
         {

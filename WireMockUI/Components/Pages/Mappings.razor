@@ -3,6 +3,7 @@
 @inject IWireMockService WireMockService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@using WireMock.Admin.Mappings
 
 <PageTitle>Mappings - WireMock.NET UI</PageTitle>
 
@@ -46,7 +47,7 @@ else
         <RowTemplate>
             <MudTd DataLabel="Title">@context.Title</MudTd>
             <MudTd DataLabel="Method">@(context.Request?.Methods != null ? string.Join(", ", context.Request.Methods) : "ANY")</MudTd>
-            <MudTd DataLabel="Path">@context.Request?.Path</MudTd>
+            <MudTd DataLabel="Path">@(context.Request?.Path?.Matchers?.FirstOrDefault()?.Pattern ?? context.Request?.Path?.ToString() ?? "")</MudTd>
             <MudTd DataLabel="Status Code">@context.Response?.StatusCode</MudTd>
             <MudTd DataLabel="Priority">@context.Priority</MudTd>
             <MudTd DataLabel="Actions">
@@ -58,7 +59,7 @@ else
 }
 
 @code {
-    private List<WireMockMapping> _mappings = new();
+    private List<MappingModel> _mappings = new();
     private bool _isLoading = true;
 
     protected override async Task OnInitializedAsync()
@@ -70,7 +71,7 @@ else
     {
         _isLoading = true;
         var result = await WireMockService.GetMappingsAsync();
-        _mappings = result?.Mappings?.ToList() ?? new List<WireMockMapping>();
+        _mappings = result?.ToList() ?? new List<MappingModel>();
         _isLoading = false;
     }
 
@@ -86,9 +87,9 @@ else
         var dialog = await DialogService.ShowAsync<CreateMappingDialog>("Create New Mapping", options);
         var result = await dialog.Result;
 
-        if (!result.Canceled && result.Data != null && result.Data is CreateMappingRequest request)
+        if (!result.Canceled && result.Data != null && result.Data is MappingModel mapping)
         {
-            if (await WireMockService.CreateMappingAsync(request))
+            if (await WireMockService.CreateMappingAsync(mapping))
             {
                 Snackbar.Add("Mapping created successfully", Severity.Success);
                 await LoadMappings();
@@ -100,7 +101,7 @@ else
         }
     }
 
-    private async Task ViewMapping(WireMockMapping mapping)
+    private async Task ViewMapping(MappingModel mapping)
     {
         var parameters = new DialogParameters<ViewMappingDialog>
         {
