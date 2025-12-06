@@ -1,4 +1,4 @@
-@using WireMockUI.Models
+@using WireMock.Admin.Requests
 @using System.Text.Json
 
 <MudDialog>
@@ -10,7 +10,7 @@
 
             <MudItem xs="12" md="6">
                 <MudTextField Label="Method"
-                              Value="@Request?.Method"
+                              Value="@Request?.Request?.Method"
                               Variant="Variant.Outlined"
                               ReadOnly="true"
                               Margin="Margin.Dense" />
@@ -18,7 +18,7 @@
 
             <MudItem xs="12" md="6">
                 <MudTextField Label="Timestamp"
-                              Value="@Request?.DateTime.ToString("yyyy-MM-dd HH:mm:ss")"
+                              Value="@Request?.Request?.DateTime.ToString("yyyy-MM-dd HH:mm:ss")"
                               Variant="Variant.Outlined"
                               ReadOnly="true"
                               Margin="Margin.Dense" />
@@ -26,7 +26,7 @@
 
             <MudItem xs="12">
                 <MudTextField Label="URL"
-                              Value="@Request?.Url"
+                              Value="@Request?.Request?.Url"
                               Variant="Variant.Outlined"
                               ReadOnly="true"
                               Margin="Margin.Dense" />
@@ -34,7 +34,7 @@
 
             <MudItem xs="12" md="6">
                 <MudTextField Label="Absolute URL"
-                              Value="@Request?.AbsoluteUrl"
+                              Value="@Request?.Request?.AbsoluteUrl"
                               Variant="Variant.Outlined"
                               ReadOnly="true"
                               Margin="Margin.Dense" />
@@ -42,18 +42,18 @@
 
             <MudItem xs="12" md="6">
                 <MudTextField Label="Client IP"
-                              Value="@Request?.ClientIP"
+                              Value="@Request?.Request?.ClientIP"
                               Variant="Variant.Outlined"
                               ReadOnly="true"
                               Margin="Margin.Dense" />
             </MudItem>
 
-            @if (Request?.Headers != null && Request.Headers.Any())
+            @if (Request?.Request?.Headers != null && Request.Request.Headers.Any())
             {
                 <MudItem xs="12">
                     <MudText Typo="Typo.h6" Class="mt-2">Headers</MudText>
                     <MudPaper Class="pa-2 mt-2" Outlined="true">
-                        @foreach (var header in Request.Headers)
+                        @foreach (var header in Request.Request.Headers)
                         {
                             <MudText Typo="Typo.body2">
                                 <strong>@header.Key:</strong> @string.Join(", ", header.Value)
@@ -63,12 +63,12 @@
                 </MudItem>
             }
 
-            @if (!string.IsNullOrWhiteSpace(Request?.Body))
+            @if (!string.IsNullOrWhiteSpace(Request?.Request?.Body))
             {
                 <MudItem xs="12">
                     <MudText Typo="Typo.h6" Class="mt-2">Body</MudText>
                     <MudPaper Class="pa-2 mt-2" Outlined="true">
-                        <MudText Typo="Typo.body2" Style="font-family: monospace; white-space: pre-wrap;">@FormatBody(Request.Body)</MudText>
+                        <MudText Typo="Typo.body2" Style="font-family: monospace; white-space: pre-wrap;">@FormatBody(Request.Request.Body)</MudText>
                     </MudPaper>
                 </MudItem>
             }
@@ -84,7 +84,7 @@
     IMudDialogInstance? MudDialog { get; set; }
 
     [Parameter]
-    public WireMockRequest? Request { get; set; }
+    public LogEntryModel? Request { get; set; }
 
     private void Close()
     {

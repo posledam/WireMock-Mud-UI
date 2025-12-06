@@ -1,4 +1,4 @@
-@using WireMockUI.Models
+@using WireMock.Admin.Mappings
 @using System.Text.Json
 
 <MudDialog>
@@ -31,7 +31,7 @@
 
             <MudItem xs="12" md="6">
                 <MudTextField Label="Path"
-                              Value="@Mapping?.Request?.Path"
+                              Value="@(Mapping?.Request?.Path?.Matchers?.FirstOrDefault()?.Pattern ?? Mapping?.Request?.Path?.ToString() ?? "")"
                               Variant="Variant.Outlined"
                               ReadOnly="true"
                               Margin="Margin.Dense" />
@@ -75,7 +75,7 @@
 
             <MudItem xs="12" md="6">
                 <MudTextField Label="Delay (ms)"
-                              Value="@Mapping?.Response?.Delay.ToString()"
+                              Value="@Mapping?.Response?.Delay?.ToString()"
                               Variant="Variant.Outlined"
                               ReadOnly="true"
                               Margin="Margin.Dense" />
@@ -117,7 +117,7 @@
     IMudDialogInstance? MudDialog { get; set; }
 
     [Parameter]
-    public WireMockMapping? Mapping { get; set; }
+    public MappingModel? Mapping { get; set; }
 
     private void Close()
     {

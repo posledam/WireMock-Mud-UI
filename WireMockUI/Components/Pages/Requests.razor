@@ -3,6 +3,7 @@
 @inject IWireMockService WireMockService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@using WireMock.Admin.Requests
 
 <PageTitle>Requests - WireMock.NET UI</PageTitle>
 
@@ -42,11 +43,11 @@ else
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Method">
-                <MudChip T="string" Size="Size.Small" Color="@GetMethodColor(context.Method)">@context.Method</MudChip>
+                <MudChip T="string" Size="Size.Small" Color="@GetMethodColor(context.Request?.Method)">@context.Request?.Method</MudChip>
             </MudTd>
-            <MudTd DataLabel="URL">@context.Url</MudTd>
-            <MudTd DataLabel="Time">@context.DateTime.ToString("yyyy-MM-dd HH:mm:ss")</MudTd>
-            <MudTd DataLabel="Client IP">@context.ClientIP</MudTd>
+            <MudTd DataLabel="URL">@context.Request?.Url</MudTd>
+            <MudTd DataLabel="Time">@context.Request?.DateTime.ToString("yyyy-MM-dd HH:mm:ss")</MudTd>
+            <MudTd DataLabel="Client IP">@context.Request?.ClientIP</MudTd>
             <MudTd DataLabel="Actions">
                 <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Color="Color.Info" OnClick="@(() => ViewRequest(context))" />
             </MudTd>
@@ -55,7 +56,7 @@ else
 }
 
 @code {
-    private List<WireMockRequest> _requests = new();
+    private List<LogEntryModel> _requests = new();
     private bool _isLoading = true;
 
     protected override async Task OnInitializedAsync()
@@ -67,11 +68,11 @@ else
     {
         _isLoading = true;
         var result = await WireMockService.GetRequestsAsync();
-        _requests = result?.Requests?.OrderByDescending(r => r.DateTime).ToList() ?? new List<WireMockRequest>();
+        _requests = result?.OrderByDescending(r => r.Request?.DateTime ?? DateTime.MinValue).ToList() ?? new List<LogEntryModel>();
         _isLoading = false;
     }
 
-    private async Task ViewRequest(WireMockRequest request)
+    private async Task ViewRequest(LogEntryModel request)
     {
         var parameters = new DialogParameters<ViewRequestDialog>
         {
@@ -85,7 +86,7 @@ else
             CloseOnEscapeKey = true
         };
 
-        await DialogService.ShowAsync<ViewRequestDialog>($"Request: {request.Method} {request.Url}", parameters, options);
+        await DialogService.ShowAsync<ViewRequestDialog>($"Request: {request.Request?.Method} {request.Request?.Url}", parameters, options);
     }
 
     private async Task ResetRequests()

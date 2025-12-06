@@ -1,4 +1,6 @@
 using MudBlazor.Services;
+using RestEase.HttpClientFactory;
+using WireMock.Client;
 using WireMockUI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,11 +12,9 @@ builder.Services.AddRazorComponents()
 builder.Services.AddMudServices();
 
 // Register WireMock services
-builder.Services.AddHttpClient<IWireMockService, WireMockService>(client =>
-{
-    var wireMockUrl = builder.Configuration["WireMock:BaseUrl"] ?? "http://localhost:9091";
-    client.BaseAddress = new Uri(wireMockUrl);
-});
+var wireMockUrl = builder.Configuration["WireMock:BaseUrl"] ?? "http://localhost:9091";
+builder.Services.AddRestEaseClient<IWireMockAdminApi>(wireMockUrl);
+builder.Services.AddScoped<IWireMockService, WireMockService>();
 
 var app = builder.Build();
 
