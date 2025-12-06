@@ -42,7 +42,7 @@ else
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Method">
-                <MudChip Size="Size.Small" Color="@GetMethodColor(context.Method)">@context.Method</MudChip>
+                <MudChip T="string" Size="Size.Small" Color="@GetMethodColor(context.Method)">@context.Method</MudChip>
             </MudTd>
             <MudTd DataLabel="URL">@context.Url</MudTd>
             <MudTd DataLabel="Time">@context.DateTime.ToString("yyyy-MM-dd HH:mm:ss")</MudTd>
