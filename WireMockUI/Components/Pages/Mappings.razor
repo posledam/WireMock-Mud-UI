@@ -86,7 +86,7 @@ else
         var dialog = await DialogService.ShowAsync<CreateMappingDialog>("Create New Mapping", options);
         var result = await dialog.Result;
 
-        if (!result.Canceled && result.Data is CreateMappingRequest request)
+        if (!result.Canceled && result.Data != null && result.Data is CreateMappingRequest request)
         {
             if (await WireMockService.CreateMappingAsync(request))
             {
