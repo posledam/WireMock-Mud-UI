@@ -47,12 +47,12 @@ else
         <RowTemplate>
             <MudTd DataLabel="Title">@context.Title</MudTd>
             <MudTd DataLabel="Method">@(context.Request?.Methods != null ? string.Join(", ", context.Request.Methods) : "ANY")</MudTd>
-            <MudTd DataLabel="Path">@(context.Request?.Path?.Matchers?.FirstOrDefault()?.Pattern ?? context.Request?.Path?.ToString() ?? "")</MudTd>
+            <MudTd DataLabel="Path">@(context.Request?.Path?.ToString() ?? "")</MudTd>
             <MudTd DataLabel="Status Code">@context.Response?.StatusCode</MudTd>
             <MudTd DataLabel="Priority">@context.Priority</MudTd>
             <MudTd DataLabel="Actions">
                 <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Color="Color.Info" OnClick="@(() => ViewMapping(context))" />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteMapping(context.Guid))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteMapping(context.Guid ?? System.Guid.Empty))" />
             </MudTd>
         </RowTemplate>
     </MudTable>
@@ -87,7 +87,7 @@ else
         var dialog = await DialogService.ShowAsync<CreateMappingDialog>("Create New Mapping", options);
         var result = await dialog.Result;
 
-        if (!result.Canceled && result.Data != null && result.Data is MappingModel mapping)
+        if (result != null && !result.Canceled && result.Data != null && result.Data is MappingModel mapping)
         {
             if (await WireMockService.CreateMappingAsync(mapping))
             {

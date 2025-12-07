@@ -31,7 +31,7 @@
 
             <MudItem xs="12" md="6">
                 <MudTextField Label="Path"
-                              Value="@(Mapping?.Request?.Path?.Matchers?.FirstOrDefault()?.Pattern ?? Mapping?.Request?.Path?.ToString() ?? "")"
+                              Value="@(Mapping?.Request?.Path?.ToString() ?? "")"
                               Variant="Variant.Outlined"
                               ReadOnly="true"
                               Margin="Margin.Dense" />
@@ -53,7 +53,7 @@
                         @foreach (var header in Mapping.Request.Headers)
                         {
                             <MudText Typo="Typo.body2">
-                                <strong>@header.Key:</strong> @JsonSerializer.Serialize(header.Value)
+                                <strong>@header.Name:</strong> @JsonSerializer.Serialize(header.Matchers)
                             </MudText>
                         }
                     </MudPaper>
@@ -67,7 +67,7 @@
 
             <MudItem xs="12" md="6">
                 <MudTextField Label="Status Code"
-                              Value="@Mapping?.Response?.StatusCode.ToString()"
+                              Value="@Mapping?.Response?.StatusCode?.ToString()"
                               Variant="Variant.Outlined"
                               ReadOnly="true"
                               Margin="Margin.Dense" />
@@ -89,7 +89,7 @@
                         @foreach (var header in Mapping.Response.Headers)
                         {
                             <MudText Typo="Typo.body2">
-                                <strong>@header.Key:</strong> @header.Value
+                                <strong>@header.Key:</strong> @JsonSerializer.Serialize(header.Value)
                             </MudText>
                         }
                     </MudPaper>
