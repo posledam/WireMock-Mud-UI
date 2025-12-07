@@ -102,10 +102,16 @@
             Priority = _priority,
             Request = new RequestModel
             {
-                Path = new MatcherModel
+                Path = new PathModel
                 {
-                    Name = "WildcardMatcher",
-                    Pattern = _path
+                    Matchers = new[]
+                    {
+                        new MatcherModel
+                        {
+                            Name = "WildcardMatcher",
+                            Pattern = _path
+                        }
+                    }
                 },
                 Methods = new[] { _selectedMethod }
             },
