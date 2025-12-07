@@ -43,12 +43,19 @@ public class WireMockService : IWireMockService
     {
         try
         {
+            Console.WriteLine($"Creating mapping: Title={mapping.Title}, Path={mapping.Request?.Url ?? mapping.Request?.Path?.ToString() ?? "N/A"}");
             var result = await _adminApi.PostMappingAsync(mapping);
+            Console.WriteLine($"Create mapping result: Status={result?.Status}, Guid={result?.Guid}");
             return result?.Status == "Mapping added" || result?.Status?.Contains("created") == true;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error creating mapping: {ex.Message}");
+            Console.WriteLine($"Error creating mapping: {ex.GetType().Name}: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+            }
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
             return false;
         }
     }
