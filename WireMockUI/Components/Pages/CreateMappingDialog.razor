@@ -94,8 +94,18 @@
     private string _responseContentType = "application/json";
     private int _delay = 0;
 
-    private void Submit()
+    private async Task Submit()
     {
+        if (_form != null)
+        {
+            await _form.Validate();
+
+            if (!_form.IsValid)
+            {
+                return;
+            }
+        }
+
         var mapping = new MappingModel
         {
             Title = _title,
