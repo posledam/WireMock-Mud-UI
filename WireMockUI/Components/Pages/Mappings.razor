@@ -89,14 +89,22 @@ else
 
         if (result != null && !result.Canceled && result.Data != null && result.Data is MappingModel mapping)
         {
-            if (await WireMockService.CreateMappingAsync(mapping))
+            try
             {
-                Snackbar.Add("Mapping created successfully", Severity.Success);
-                await LoadMappings();
+                if (await WireMockService.CreateMappingAsync(mapping))
+                {
+                    Snackbar.Add("Mapping created successfully", Severity.Success);
+                    await LoadMappings();
+                }
+                else
+                {
+                    Snackbar.Add("Failed to create mapping. Check console for details.", Severity.Error);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Snackbar.Add("Failed to create mapping", Severity.Error);
+                Snackbar.Add($"Error creating mapping: {ex.Message}", Severity.Error);
+                Console.WriteLine($"Exception in OpenCreateDialog: {ex}");
             }
         }
     }

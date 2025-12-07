@@ -108,21 +108,12 @@
 
         var mapping = new MappingModel
         {
+            Guid = System.Guid.NewGuid(),
             Title = _title,
             Priority = _priority,
             Request = new RequestModel
             {
-                Path = new PathModel
-                {
-                    Matchers = new[]
-                    {
-                        new MatcherModel
-                        {
-                            Name = "WildcardMatcher",
-                            Pattern = _path
-                        }
-                    }
-                },
+                Url = _path,
                 Methods = new[] { _selectedMethod }
             },
             Response = new ResponseModel
